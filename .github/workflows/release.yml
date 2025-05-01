@@ -17,7 +17,8 @@ jobs:
       - name: 创建临时目录
         run: |
           mkdir -p release/cloudflared
-          cp -r scripts res webs .valid install.sh uninstall.sh version release/cloudflared/
+          cp -r scripts res webs .valid install.sh uninstall.sh release/cloudflared/
+          echo ${{ github.event.inputs.version }} > release/cloudflared/version
 
       - name: 创建压缩包
         run: |
