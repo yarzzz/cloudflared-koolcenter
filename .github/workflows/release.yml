@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号 (例如: v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: 创建临时目录
+        run: |
+          mkdir -p release/cloudflared
+          cp -r scripts res webs .valid install.sh uninstall.sh version release/cloudflared/
+
+      - name: 创建压缩包
+        run: |
+          cd release
+          tar -czf cloudflared-${{ github.event.inputs.version }}.tar.gz cloudflared/
+          cd ..
+
+      - name: 创建 Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: Release ${{ github.event.inputs.version }}
+          files: release/cloudflared-${{ github.event.inputs.version }}.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

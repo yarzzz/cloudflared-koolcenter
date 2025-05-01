@@ -21,38 +21,44 @@ platform_test(){
 		exit_install 1
 	fi
 
-    # 检测储存空间是否足够
+    # Check available space
 	echo_date 检测jffs分区剩余空间...
 	SPACE_AVAL=$(df|grep jffs|head -n 1  | awk '{print $4}')
-	SPACE_NEED=$(du -s /tmp/cloudflared | awk '{print $1}')
-	if [ "$SPACE_AVAL" -gt "$SPACE_NEED" ];then
-		echo_date 当前jffs分区剩余"$SPACE_AVAL" KB, 插件安装需要"$SPACE_NEED" KB，空间满足，继续安装！
-	else
-		echo_date 当前jffs分区剩余"$SPACE_AVAL" KB, 插件安装需要"$SPACE_NEED" KB，空间不足！
-		echo_date 退出安装！
+	if [ -z "$SPACE_AVAL" ] || [ "$SPACE_AVAL" -lt 1024 ];then
+		echo_date 当前jffs分区剩余空间不足 1MB，退出安装！
 		exit_install 1
 	fi
+	echo_date 剩余空间充足，继续安装！
 }
 
 platform_test
 
 if [ "$cloudflared_enable" == "1" ];then
 	echo_date 先关闭cloudflared，保证文件更新成功!
-	[ -f "/koolshare/scripts/cloudflared.sh" ] && sh /koolshare/scripts/aliyundrivewebdavconfig.sh stop >/dev/null 2>&1 &
+	[ -f "/koolshare/scripts/cloudflared.sh" ] && sh /koolshare/scripts/cloudflared.sh stop >/dev/null 2>&1 &
 fi
 
+# Create necessary directories
+mkdir -p /koolshare/bin
+mkdir -p /koolshare/scripts
+mkdir -p /koolshare/webs
+mkdir -p /koolshare/res
+
+# Copy configuration files and scripts
 cd /tmp
-cp -rf /tmp/cloudflared/bin/* /koolshare/bin/
 cp -rf /tmp/cloudflared/scripts/* /koolshare/scripts/
 cp -rf /tmp/cloudflared/webs/* /koolshare/webs/
 cp -rf /tmp/cloudflared/res/* /koolshare/res/
 cp -rf /tmp/cloudflared/uninstall.sh /koolshare/scripts/uninstall_cloudflared.sh
 
-chmod 755 /koolshare/bin/cloudflared
+# Set permissions
 chmod 755 /koolshare/scripts/cloudflared*
 chmod 755 /koolshare/res/cloudflared*
 chmod 755 /koolshare/scripts/uninstall_cloudflared.sh
 ln -sf /koolshare/scripts/cloudflared.sh /koolshare/init.d/S99cloudflared.sh
+
+# Notify user to download cloudflared binary
+echo_date "请使用更新功能下载 cloudflared 二进制文件！"
 
 dbus set softcenter_module_${MODULE}_name="${MODULE}"
 dbus set softcenter_module_${MODULE}_title="cloudflared"

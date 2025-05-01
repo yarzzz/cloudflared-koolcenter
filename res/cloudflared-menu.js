@@ -349,10 +349,10 @@ function showALIDRIVELoadingBar(seconds) {
 	loadingSeconds = seconds;
 	progress = 100 / loadingSeconds;
 	y = 0;
-	LoadingALIDRIVEProgress(seconds);
+	LoadingCloudflaredProgress(seconds);
 }
 
-function LoadingALIDRIVEProgress(seconds) {
+function LoadingCloudflaredProgress(seconds) {
 	action = db_cloudflared["cloudflared_action"];
 	//alert(action);
 	document.getElementById("LoadingBar").style.visibility = "visible";
@@ -362,7 +362,10 @@ function LoadingALIDRIVEProgress(seconds) {
 	} else if (action == 1) {
 		document.getElementById("loading_block3").innerHTML = "cloudflared服务启用中 ..."
 		$("#loading_block2").html("<li><font color='#ffcc00'>请等待日志显示完毕，并出现自动关闭按钮！</font></li><li><font color='#ffcc00'>在此期间请不要刷新本页面，不然可能导致问题！</font></li>");
-	} 			
+	} else if (action == 2) {
+		document.getElementById("loading_block3").innerHTML = "cloudflared更新中 ..."
+		$("#loading_block2").html("<li><font color='#ffcc00'>正在下载并安装新版本，请稍候...</font></li><li><font color='#ffcc00'>在此期间请不要刷新本页面，不然可能导致问题！</font></li>");
+	}
 }
 function hideALIDRIVELoadingBar() {
 	x = -1;

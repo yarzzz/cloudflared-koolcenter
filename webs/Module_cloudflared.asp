@@ -35,7 +35,7 @@
             var _responseLen;
             var noChange = 0;
             var x = 5;
-            var params_inputs = ['cloudflared_token'];
+            var params_inputs = ['cloudflared_token', 'cloudflared_download_url'];
             var params_check = ['cloudflared_enable'];
             function init() {
                 show_menu(menu_hook);
@@ -74,6 +74,28 @@
                 $("#cloudflared_enable").click(
                 function(){
                     update_visibility();
+                });
+            }
+
+            function update_cloudflared() {
+                if(!$.trim($('#cloudflared_download_url').val())){
+                    alert("下载链接不能为空！");
+                    return false;
+                }
+                var id = parseInt(Math.random() * 100000000);
+                var postData = {"id": id, "method": "cloudflared_update.sh", "params":[], "fields": {"cloudflared_download_url": E("cloudflared_download_url").value}};
+                db_cloudflared["cloudflared_action"] = 2;
+                showALIDRIVELoadingBar();
+                $.ajax({
+                    type: "POST",
+                    url: "/_api/",
+                    data: JSON.stringify(postData),
+                    dataType: "json",
+                    success: function(response){
+                        if(response.result == id){
+                            get_realtime_log();
+                        }
+                    }
                 });
             }
 
@@ -288,6 +310,13 @@
                                                                     <tr id="token_tr">
                                                                         <th>token</th>
                                                                         <td> <input type="text" id="cloudflared_token" class="input_32_table" value=""></td>
+                                                                    </tr>
+                                                                    <tr id="download_url_tr">
+                                                                        <th>下载链接</th>
+                                                                        <td>
+                                                                            <input type="text" id="cloudflared_download_url" class="input_32_table" value="">
+                                                                            <button id="update_btn" class="button_gen" onclick="update_cloudflared()">更新</button>
+                                                                        </td>
                                                                     </tr>
                                                                 </tbody>
                                                             </table>

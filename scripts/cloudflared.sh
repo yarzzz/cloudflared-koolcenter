@@ -17,7 +17,26 @@ source /koolshare/scripts/base.sh
 alias echo_date='echo $(date +%Y年%m月%d日\ %X):'
 
 name=cloudflared
-cmd="/koolshare/bin/cloudflared --pidfile /var/run/$name.pid --logfile /tmp/upload/$name.log --protocol http2 --url localhost:7913 tunnel run --token ${cloudflared_token}"
+bin_path="/koolshare/bin/cloudflared"
+
+# Check if binary exists and is executable
+check_binary() {
+    if [ ! -f "$bin_path" ]; then
+        echo_date "错误：$bin_path 不存在" >> $LOG_FILE
+        return 1
+    fi
+    if [ ! -x "$bin_path" ]; then
+        echo_date "设置 $bin_path 可执行权限" >> $LOG_FILE
+        chmod +x "$bin_path"
+        if [ $? -ne 0 ]; then
+            echo_date "错误：无法设置可执行权限" >> $LOG_FILE
+            return 1
+        fi
+    fi
+    return 0
+}
+
+cmd="$bin_path --pidfile /var/run/$name.pid --logfile /tmp/upload/$name.log --protocol http2 --url localhost:7913 tunnel run --token ${cloudflared_token}"
 pid_file="/var/run/$name.pid"
 pid_ali=$(pidof cloudflared)
 stdout_log="/tmp/upload/$name.log"
@@ -33,9 +52,14 @@ case "$1" in
         if is_running; then
             echo_date "已经启动" >> $LOG_FILE
         else
-            echo_date "启动 $name" >> $LOG_FILE
-            $cmd >> "$stdout_log" 2>> "$stderr_log" &
-            echo_date pid: $! > "$pid_file" >> $LOG_FILE
+            if check_binary; then
+                echo_date "启动 $name" >> $LOG_FILE
+                $cmd >> "$stdout_log" 2>> "$stderr_log" &
+                echo_date pid: $! > "$pid_file" >> $LOG_FILE
+            else
+                echo_date "启动失败：二进制文件检查未通过" >> $LOG_FILE
+                exit 1
+            fi
         fi
     ;;
     stop)
